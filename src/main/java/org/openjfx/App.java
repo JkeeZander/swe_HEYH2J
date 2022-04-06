@@ -1,57 +1,136 @@
 package org.openjfx;
 
+
+import javafx.scene.*;
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.layout.Pane;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.text.Text;
+import java.util.*;
+import java.time.*;
 
 /**
  * JavaFX App
  */
 public class App extends Application {
+    //squares
     private Cell[][] cell = new Cell[3][3];
-    private String player1;
-    private String player2;
-    private bool gameIsNotOver = true;
+
+    //Game data - player names, count of moves of each player and the start date and time.
+    LocalDateTime startTime = LocalDateTime.now();
+    private String player1="asd";
+    private String player2="dsa";
+    private String winner;
+    private int player1Count = 0;
+    private int player2Count = 0;
+
+    private Map<String,Integer> players = new HashMap<String,Integer>();
+    private boolean gameIsNotOver = true;
+    private String currentPlayer;
+
+    //Variable used for deciding which player will go first
+    private int randomDecision = (int)Math.round(Math.random());
 
 
 
     @Override
-    public void start(Stage stage) {
-        var javaVersion = SystemInfo.javaVersion();
-        var javafxVersion = SystemInfo.javafxVersion();
+    public void start(Stage primaryStage) {
+        LocalDateTime start = LocalDateTime.now();
 
-        var label = new Label("Hello, JavaFX " + javafxVersion + ", running on Java " + javaVersion + ".");
-        var scene = new Scene(new StackPane(label), 640, 480);
-        stage.setScene(scene);
-        stage.show();
+
+        players.put(player1,Integer.valueOf(0));
+        players.put(player2,Integer.valueOf(1));
+        if(randomDecision==0){
+            currentPlayer = player1;
+
+        }else{
+            currentPlayer = player2;
+        }
+
+        GridPane pane = new GridPane();
+        for (int i = 0; i < 3; i++)
+            for (int j = 0; j < 3; j++)
+                pane.add(cell[i][j] = new Cell(i,j),i,j);
+
+        BorderPane borderPane = new BorderPane();
+        borderPane.setCenter(pane);
+
+        Scene scene = new Scene(borderPane, 450, 450);
+        primaryStage.setTitle("OneVsZero");
+        primaryStage.setScene(scene);
+        primaryStage.show();
     }
+
     public class Cell extends Pane{
         private int token = 99;
         private int coordinateX;
         private int coordinateY;
+
         Cell(int i ,int j){
-            setOnMouseClicked(e->handleClick());
+            this.setPrefSize(150,150);
+            setStyle("-fx-border-color: black");
+            this.setOnMouseClicked(e->handleClick());
             coordinateX = i;
             coordinateY = j;
         }
+
         public int getToken(){
             return token;
         }
-        private void handleClick(){
 
-            if()
+        private void handleClick(){
+            if(!gameIsNotOver){
+                return;
+            }
+
+            if(placeToken(Integer.valueOf(players.get(currentPlayer)))) {
+
+                if (checkIsWin()) {
+                    winner = currentPlayer;
+                    System.out.println("WInner is " + winner);
+                    gameIsNotOver = false;
+                    return;
+                }
+
+                if (checkIsFull()) {
+                    System.out.println("Draw - no winner");
+                    gameIsNotOver = false;
+                    return;
+                }
+
+                if (currentPlayer.equals(player1)) {
+                    currentPlayer = player2;
+                    player1Count++;
+                } else {
+                    currentPlayer = player1;
+                    player2Count++;
+                }
+            }
+
         }
-        private void placeToken(int token){
-            if(token==99) {
+
+        private boolean placeToken(int token){
+            if(this.token==99) {
                 this.token=token;
+                Text text = new Text();
+                text.setX(this.getHeight()/2);
+                text.setY(this.getWidth()/2);
+                text.setText(String.valueOf(token));
+                this.getChildren().add(text);
+                return true;
             }else{
                 System.out.print("Error placing in the full square");
+                return false;
             }
 
 
         }
+
         private boolean checkIsWin(){
             int row;
             int column;
@@ -80,19 +159,18 @@ public class App extends Application {
             return false;
 
         }
+
         private boolean checkIsFull(){
             for(int i = 0 ;i<cell.length;i++){
                 for(int j = 0;j<cell[i].length;j++){
-                    if(cell[i][j].getToken==99){
+                    if(cell[i][j].getToken()==99){
                         return false;
                     }
                 }
             }
             return true;
-
         }
     }
-    private void
 
     public static void main(String[] args) {
         launch();
