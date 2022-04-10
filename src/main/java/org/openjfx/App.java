@@ -1,6 +1,7 @@
 package org.openjfx;
 
 
+import javafx.geometry.Pos;
 import javafx.scene.*;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -11,6 +12,8 @@ import javafx.stage.Stage;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
 import java.util.*;
 import java.time.*;
 
@@ -23,8 +26,8 @@ public class App extends Application {
 
     //Game data - player names, count of moves of each player and the start date and time.
     LocalDateTime startTime = LocalDateTime.now();
-    private String player1="asd";
-    private String player2="dsa";
+    private String player1;
+    private String player2;
     private String winner;
     private int player1Count = 0;
     private int player2Count = 0;
@@ -40,31 +43,54 @@ public class App extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        LocalDateTime start = LocalDateTime.now();
-
-
-        players.put(player1,Integer.valueOf(0));
-        players.put(player2,Integer.valueOf(1));
-        if(randomDecision==0){
-            currentPlayer = player1;
-
-        }else{
-            currentPlayer = player2;
-        }
-
-        GridPane pane = new GridPane();
-        for (int i = 0; i < 3; i++)
-            for (int j = 0; j < 3; j++)
-                pane.add(cell[i][j] = new Cell(i,j),i,j);
-
         BorderPane borderPane = new BorderPane();
-        borderPane.setCenter(pane);
+        getUserNames(borderPane);
 
         Scene scene = new Scene(borderPane, 450, 450);
         primaryStage.setTitle("OneVsZero");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
+    private GridPane displayGrid(){
+        GridPane pane = new GridPane();
+            for (int i = 0; i < 3; i++)
+                for (int j = 0; j < 3; j++)
+                    pane.add(cell[i][j] = new Cell(i, j), i, j);
+        return pane;
+    }
+
+    private void decidePlayerOrder(){
+        players.put(player1,Integer.valueOf(0));
+        players.put(player2,Integer.valueOf(1));
+        if(randomDecision==0){
+            currentPlayer = player1;
+            System.out.print("First player is" + currentPlayer);
+
+        }else{
+            currentPlayer = player2;
+        }
+    }
+
+    private void getUserNames(BorderPane pane){
+        StackPane intro = new StackPane();
+        TextField player1Name = new TextField();
+        TextField player2Name = new TextField();
+        Button submitPlayerNames = new Button("Submits");
+        submitPlayerNames.setOnAction(e ->{
+            player1 = player1Name.getText();
+            player2 = player2Name.getText();
+            if(!player1.isBlank() && !player2.isBlank() && !player1.equals(player2)){
+                decidePlayerOrder();
+                pane.setCenter(displayGrid());
+            }
+        });
+        intro.getChildren().addAll(player1Name,player2Name,submitPlayerNames);
+        intro.setAlignment(player1Name, Pos.TOP_CENTER);
+        intro.setAlignment(player2Name,Pos.CENTER);
+        intro.setAlignment(submitPlayerNames,Pos.BOTTOM_CENTER);
+        pane.setCenter(intro);
+    }
+
 
     public class Cell extends Pane{
         private int token = 99;
